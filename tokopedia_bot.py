@@ -5,11 +5,6 @@ import os
 import sys
 from datetime import datetime, timedelta
 
-# --- DRIVER MANAGER ---
-from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.firefox import GeckoDriverManager 
-from webdriver_manager.microsoft import EdgeChromiumDriverManager
-
 from selenium import webdriver
 from selenium.webdriver.edge.service import Service as EdgeService
 from selenium.webdriver.edge.options import Options as EdgeOptions
@@ -23,6 +18,11 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+# --- NONAKTIFKAN DRIVER MANAGER UNTUK MENGHINDARI ERROR ONLINE ---
+# from webdriver_manager.chrome import ChromeDriverManager
+# from webdriver_manager.firefox import GeckoDriverManager 
+# from webdriver_manager.microsoft import EdgeChromiumDriverManager
+
 # ==========================================
 # 1. SETUP PROFIL BROWSER
 # ==========================================
@@ -31,22 +31,22 @@ base_path_brave = r"C:\Users\danan\AppData\Local\BraveSoftware\Brave-Browser\Use
 base_path_firefox = r"C:\Users\danan\AppData\Roaming\Mozilla\Firefox\Profiles"
 
 profiles = {
-    "1": {"type": "edge", "path": base_path_edge, "profile": "Default",   "name": "Edge 1 - Heirbiglow (English/AMPM)"},
-    "2": {"type": "edge", "path": base_path_edge, "profile": "Profile 1", "name": "Edge 2 - Ciara Indonesia (English/AMPM)"},
-    "3": {"type": "firefox", "path": base_path_firefox, "profile": "jtkkxnwv.default-release", "name": "Firefox - Harnisch (Indo/24H)"},
-    "4": {"type": "edge", "path": base_path_edge, "profile": "Profile 5", "name": "Edge 4 - Ciara Malaysia (English/AMPM)"},
-    "5": {"type": "brave", "path": base_path_brave, "profile": "Default", "name": "Brave - Heirbikids (English/AMPM)"},
+    "1": {"type": "edge", "path": base_path_edge, "profile": "Default",   "name": "Edge 1 - HERB25SEN"}, 
+    "2": {"type": "edge", "path": base_path_edge, "profile": "Profile 1", "name": "Edge 2 - Ciara Indonesia"},
+    "3": {"type": "firefox", "path": base_path_firefox, "profile": "jtkkxnwv.default-release", "name": "Firefox - Harnisch"},
+    "4": {"type": "edge", "path": base_path_edge, "profile": "Profile 5", "name": "Edge 4 - Ciara Malaysia"}, # SERVER LUAR (AM/PM)
+    "5": {"type": "brave", "path": base_path_brave, "profile": "Default", "name": "Brave - Heirbikids"},
 }
 
 # ==========================================
-# 2. START BROWSER (DEBUG MODE)
+# 2. START BROWSER (OFFLINE DRIVER MODE)
 # ==========================================
 def start_browser(choice):
     selected = profiles.get(choice)
     if not selected: return None
 
     # Auto Kill
-    print(f"🔪 Mematikan proses {selected['type']} lama...")
+    print(f"🔪 Matiin proses {selected['type']} lama...")
     try:
         if selected['type'] == 'edge': os.system("taskkill /F /IM msedge.exe >nul 2>&1")
         elif selected['type'] == 'firefox': os.system("taskkill /F /IM firefox.exe >nul 2>&1")
@@ -56,10 +56,12 @@ def start_browser(choice):
         
     time.sleep(2) 
 
-    print(f"🚀 Gas buka {selected['name']}...")
+    print(f"🚀 OTW buka {selected['name']}...")
+    current_dir = os.path.dirname(os.path.abspath(__file__))
     
     # --- EDGE ---
     if selected['type'] == 'edge':
+        driver_path = os.path.join(current_dir, "msedgedriver.exe")
         options = EdgeOptions()
         options.use_chromium = True
         options.add_argument(f"user-data-dir={selected['path']}")
@@ -67,35 +69,36 @@ def start_browser(choice):
         options.add_experimental_option("detach", True)
         options.add_argument("--log-level=3")
         
+        if not os.path.exists(driver_path):
+            print("\n❌ ERROR: File 'msedgedriver.exe' TIDAK DITEMUKAN di folder script!")
+            return None
+        
         try:
-            print("   🔧 Sedang install/cek Edge Driver...")
-            service = EdgeService(EdgeChromiumDriverManager().install())
+            print("   🔧 Pakai driver LOKAL: msedgedriver.exe")
+            service = EdgeService(driver_path)
             driver = webdriver.Edge(service=service, options=options)
-            print("   ✅ Edge Berhasil Terbuka!")
-            
         except Exception as e:
-            print(f"\n❌ ERROR FATAL EDGE: {e}")
-            print("💡 Tips: Coba update Edge manual, atau hapus folder 'msedgedriver' lama.")
+            print(f"❌ Yah gagal buka Edge. Error: {e}")
             return None
 
     # --- FIREFOX ---
     elif selected['type'] == 'firefox':
+        driver_path = os.path.join(current_dir, "geckodriver.exe")
         options = FirefoxOptions()
         full_path = os.path.join(selected['path'], selected['profile'])
         options.add_argument("-profile")
         options.add_argument(full_path)
         
         try:
-            print("   🔧 Sedang install/cek Gecko Driver...")
-            driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), options=options)
-            print("   ✅ Firefox Berhasil Terbuka!")
-            
+            service = FirefoxService(driver_path) # Menggunakan driver lokal
+            driver = webdriver.Firefox(service=service, options=options)
         except Exception as e:
-            print(f"\n❌ ERROR FATAL FIREFOX: {e}")
+            print(f"❌ Gagal buka Firefox: {e}")
             return None
         
     # --- BRAVE ---
     elif selected['type'] == 'brave':
+        driver_path = os.path.join(current_dir, "chromedriver.exe")
         options = ChromeOptions()
         options.binary_location = r"C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe"
         options.add_argument(f"user-data-dir={selected['path']}")
@@ -104,12 +107,10 @@ def start_browser(choice):
         options.add_argument("--log-level=3")
         
         try:
-            print("   🔧 Sedang install/cek Chrome Driver (Brave)...")
-            driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
-            print("   ✅ Brave Berhasil Terbuka!")
-            
+            service = ChromeService(driver_path) # Menggunakan driver lokal
+            driver = webdriver.Chrome(service=service, options=options)
         except Exception as e:
-            print(f"\n❌ ERROR FATAL BRAVE: {e}")
+            print(f"❌ Gagal buka Brave: {e}")
             return None
     
     driver.maximize_window()
@@ -120,70 +121,92 @@ def start_browser(choice):
 # ==========================================
 def fill_input_xpath(driver, xpath, value, description):
     try:
-        elem = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.XPATH, xpath)))
+        elem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, xpath)))
         driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", elem)
         time.sleep(0.5)
         
-        # Cara hapus bersih: Klik -> Ctrl+A -> Backspace
         elem.click()
         elem.send_keys(Keys.CONTROL + "a")
         elem.send_keys(Keys.BACKSPACE)
         time.sleep(0.2)
         elem.send_keys(value)
         elem.send_keys(Keys.ENTER) 
-        print(f"   ✅ {description} diisi: {value}")
+        print(f"   ✅ {description}: {value}")
         return True
     except Exception as e:
         print(f"   ⚠️ Gagal isi {description}: {e}")
         return False
 
 # ==========================================
-# 4. LOGIKA UTAMA (DUAL LANGUAGE SUPPORT)
+# 4. LOGIKA UTAMA TIKTOK
 # ==========================================
 def run_tiktok(driver, search_target, new_name, new_code, raw_tgl_start, browser_choice):
     
     # --- A. SETUP FORMAT WAKTU ---
     dt_start = datetime.strptime(f"{raw_tgl_start}", "%d-%m-%Y")
     dt_end = dt_start + timedelta(days=25)
-
-    is_english = False
     
-    if browser_choice == '3': 
-        # === FIREFOX (INDONESIA) ===
-        print("🇮🇩 Mode: INDONESIA (24 Jam)")
-        is_english = False
-        date_start_str = dt_start.strftime("%d/%m/%Y")
-        date_end_str = dt_end.strftime("%d/%m/%Y")
-        time_start_str = "06:00"
-        time_end_str = "23:59"
-        xpath_start_label = "Waktu mulai"
-        xpath_end_label = "Waktu selesai"
-        
-    else:
-        # === EDGE & BRAVE (INGGRIS) ===
-        print("🇺🇸 Mode: ENGLISH (AM/PM)")
-        is_english = True
-        date_start_str = dt_start.strftime("%m/%d/%Y")
+    # Deteksi Format Berdasarkan Browser Choice
+    if browser_choice == '4': 
+        # === EDGE 4 (CIARA MALAYSIA / AM/PM) ===
+        print("🇲🇾 Mode: MALAYSIA (AM/PM - MM/DD/YYYY)")
+        date_start_str = dt_start.strftime("%m/%d/%Y") # MM/DD/YYYY
         date_end_str = dt_end.strftime("%m/%d/%Y")
         time_start_str = "06:00 AM"
         time_end_str = "11:59 PM"
-        xpath_start_label = "Start time"
-        xpath_end_label = "End time"
+        xpath_start_label = "Start time" # Harus pakai Bahasa Inggris
+        xpath_end_label = "End time" # Harus pakai Bahasa Inggris
+        
+    else:
+        # === INDONESIA GRUP (24H / DD/MM/YYYY) ===
+        # Meliputi Edge 1, Edge 2, Firefox, Brave
+        print("🇮🇩 Mode: INDONESIA (24 Jam - DD/MM/YYYY)")
+        date_start_str = dt_start.strftime("%d/%m/%Y") # DD/MM/YYYY
+        date_end_str = dt_end.strftime("%d/%m/%Y")
+        time_start_str = "06:00"
+        time_end_str = "23:59"
+        
+        # Label disesuaikan: Firefox (Indo), Edge/Brave (bisa Indo atau Inggris, kita pakai versi yang lebih general)
+        if browser_choice == '3':
+            xpath_start_label = "Waktu mulai" # Firefox (Indo)
+            xpath_end_label = "Waktu selesai"
+        else:
+            xpath_start_label = "Start time" # Default untuk Edge/Brave (yang biasanya English di form)
+            xpath_end_label = "End time"
+
 
     # --- B. BUKA WEBSITE & SEARCH ---
     url_tiktok = "https://seller-id.tiktok.com/marketing/promotion/tools/voucher/list" 
     driver.get(url_tiktok)
-    print("⏳ Loading TikTok Shop...")
-    time.sleep(5) 
-
+    
+    print("⏳ Nunggu halaman TikTok siap...")
+    try:
+        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.XPATH, "//input[contains(@placeholder, 'Filter')]")))
+    except:
+        print("❌ Gagal memuat halaman utama TikTok.")
+        return
+    
+    # 1. SEARCH & DUPLIKAT
     print(f"🔎 Mencari Voucher: '{search_target}'")
     try:
-        # Input Search
-        fill_input_xpath(driver, "//input[contains(@placeholder, 'Filter')]", search_target, "Search Box")
-        time.sleep(3) 
+        # Input Search Box (Bilingual placeholder search)
+        search_xpath = "//input[contains(@placeholder, 'Filter') or contains(@placeholder, 'Filter berdasarkan')]"
+        if not fill_input_xpath(driver, search_xpath, search_target, "Search Box"):
+            return
+        
+        # Tekan ENTER
+        driver.find_element(By.XPATH, search_xpath).send_keys(Keys.ENTER)
+        print("   ✅ Enter ditekan. Nunggu hasil filter (5 detik)...")
+        time.sleep(5) 
+        
+        # Explicit Wait untuk memastikan BARIS PERTAMA
+        row_with_target = f"//tbody/tr[1][contains(., '{search_target}')]"
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, row_with_target)))
+        print("   ✅ Hasil filter ditemukan di baris pertama.")
 
-        # Klik Dropdown Action
-        dropdown_btn = driver.find_element(By.XPATH, "//tbody/tr[1]//button[contains(@class, 'theme-arco-btn-icon-only')]")
+        # Klik Tombol Panah Dropdown
+        dropdown_xpath = "//tbody/tr[1]//button[contains(@class, 'theme-arco-btn-icon-only')]"
+        dropdown_btn = driver.find_element(By.XPATH, dropdown_xpath)
         driver.execute_script("arguments[0].click();", dropdown_btn)
         time.sleep(1)
 
@@ -194,14 +217,14 @@ def run_tiktok(driver, search_target, new_name, new_code, raw_tgl_start, browser
         
     except Exception as e:
         print(f"❌ Gagal Search/Duplikat: {e}")
-        print("⚠️ Pastikan kamu sudah LOGIN MANUAL di browser ini!")
+        print("⚠️ Pastikan nama voucher lama BENAR dan sudah ada di halaman list!")
         return
 
-    print("⏳ Nunggu form edit kebuka...")
+    print("⏳ Nunggu halaman edit kebuka (5 detik)...")
     time.sleep(5)
 
-    # --- C. ISI FORMULIR (SESUAI BAHASA) ---
-    print(f"📝 Mengisi Data Baru ({'English' if is_english else 'Indo'})...")
+    # --- C. ISI FORMULIR ---
+    print(f"📝 Mengisi Data Baru...")
 
     # 1. GANTI NAMA VOUCHER
     xpath_name = "//label[contains(text(),'Promotion name') or contains(text(),'Nama promosi')]/../..//input"
@@ -212,19 +235,22 @@ def run_tiktok(driver, search_target, new_name, new_code, raw_tgl_start, browser
     fill_input_xpath(driver, xpath_code, new_code, "Kode Voucher")
 
     # 3. ISI TANGGAL & JAM
-    # Start Time
+    
+    # Start Time - Tanggal
     xpath_date_start = f"//label[contains(., '{xpath_start_label}')]/../..//div[contains(@class, 'date-picker')]//input"
     fill_input_xpath(driver, xpath_date_start, date_start_str, "Tgl Mulai")
     
+    # Start Time - Jam
     xpath_time_start = f"//label[contains(., '{xpath_start_label}')]/../..//div[contains(@class, 'time-picker')]//input"
     fill_input_xpath(driver, xpath_time_start, time_start_str, "Jam Mulai")
 
     time.sleep(1)
 
-    # End Time
+    # End Time - Tanggal
     xpath_date_end = f"//label[contains(., '{xpath_end_label}')]/../..//div[contains(@class, 'date-picker')]//input"
     fill_input_xpath(driver, xpath_date_end, date_end_str, "Tgl Selesai")
     
+    # End Time - Jam
     xpath_time_end = f"//label[contains(., '{xpath_end_label}')]/../..//div[contains(@class, 'time-picker')]//input"
     fill_input_xpath(driver, xpath_time_end, time_end_str, "Jam Selesai")
 
@@ -234,7 +260,7 @@ def run_tiktok(driver, search_target, new_name, new_code, raw_tgl_start, browser
 # 5. MENU UTAMA
 # ==========================================
 if __name__ == "__main__":
-    print("\n=== BOT TIKTOK SHOP (DEBUG MODE) ===")
+    print("\n=== BOT TIKTOK SHOP (FINAL TIME FIX) ===")
     
     search_target = input("1. Nama Voucher Lama (yg mau dicari/duplikat): ")
     if not search_target: search_target = "Diskon 25rb"
@@ -246,7 +272,7 @@ if __name__ == "__main__":
     if not new_code: new_code = "TEST1"
 
     print("\n4. Tanggal Mulai (DD-MM-YYYY)")
-    raw_tgl = input("   Ketik Tanggal (Misal 12-12-2025): ")
+    raw_tgl = input("   Ketik Tanggal (Misal 15-12-2025): ")
     if not raw_tgl: raw_tgl = datetime.now().strftime("%d-%m-%Y")
 
     print("\n5. Pilih Browser:")

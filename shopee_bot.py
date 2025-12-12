@@ -34,8 +34,8 @@ base_path_firefox = r"C:\Users\danan\AppData\Roaming\Mozilla\Firefox\Profiles"
 
 # Daftar akun perang kita nih:
 profiles = {
-    # Edge 1: Si Heirbiglow
-    "1": {"type": "edge", "path": base_path_edge, "profile": "Default",   "name": "Edge 1 - Heirbiglow"},
+    # Edge 1: Si Heirbiglow (CARI 25000)
+    "1": {"type": "edge", "path": base_path_edge, "profile": "Default",   "name": "Edge 1 - HERB25SEN"},
     
     # Edge 2: Ciara Indonesia
     "2": {"type": "edge", "path": base_path_edge, "profile": "Profile 1", "name": "Edge 2 - Ciara Indonesia"},
@@ -338,8 +338,8 @@ def run_shopee_full(driver, diskon_angka, tgl_mulai_str, jam_mulai_str, len_suff
         driver.execute_script("document.body.style.zoom = '80%'")
     
     # Tentukan Target Pencarian (Sesuai Request)
-    if browser_choice == '1': # Heirbiglow
-        target_text = f"Diskon {diskon_angka}rb"
+    if browser_choice == '1': # Heirbiglow (CARI 25000)
+        target_text = f"Diskon {diskon_angka}000"
     elif browser_choice == '2': # Ciara Indo
         target_text = f"Diskon {diskon_angka}%"
     elif browser_choice == '3': # Firefox Harnisch
