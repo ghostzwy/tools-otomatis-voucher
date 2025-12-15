@@ -18,10 +18,10 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-# --- NONAKTIFKAN DRIVER MANAGER UNTUK MENGHINDARI ERROR ONLINE ---
-# from webdriver_manager.chrome import ChromeDriverManager
-# from webdriver_manager.firefox import GeckoDriverManager 
-# from webdriver_manager.microsoft import EdgeChromiumDriverManager
+# --- TAMBAHKAN KEMBALI IMPORT DRIVER MANAGER UNTUK FIREFOX/BRAVE FALLBACK ---
+from webdriver_manager.firefox import GeckoDriverManager 
+from webdriver_manager.chrome import ChromeDriverManager
+
 
 # ==========================================
 # 1. SETUP PROFIL BROWSER
@@ -34,12 +34,12 @@ profiles = {
     "1": {"type": "edge", "path": base_path_edge, "profile": "Default",   "name": "Edge 1 - HERB25SEN"}, 
     "2": {"type": "edge", "path": base_path_edge, "profile": "Profile 1", "name": "Edge 2 - Ciara Indonesia"},
     "3": {"type": "firefox", "path": base_path_firefox, "profile": "jtkkxnwv.default-release", "name": "Firefox - Harnisch"},
-    "4": {"type": "edge", "path": base_path_edge, "profile": "Profile 5", "name": "Edge 4 - Ciara Malaysia"}, # SERVER LUAR (AM/PM)
+    "4": {"type": "edge", "path": base_path_edge, "profile": "Profile 5", "name": "Edge 4 - Ciara Malaysia"}, 
     "5": {"type": "brave", "path": base_path_brave, "profile": "Default", "name": "Brave - Heirbikids"},
 }
 
 # ==========================================
-# 2. START BROWSER (OFFLINE DRIVER MODE)
+# 2. START BROWSER (DRIVER FALLBACK)
 # ==========================================
 def start_browser(choice):
     selected = profiles.get(choice)
@@ -81,7 +81,7 @@ def start_browser(choice):
             print(f"❌ Yah gagal buka Edge. Error: {e}")
             return None
 
-    # --- FIREFOX ---
+    # --- FIREFOX (FALLBACK AUTO-DOWNLOAD) ---
     elif selected['type'] == 'firefox':
         driver_path = os.path.join(current_dir, "geckodriver.exe")
         options = FirefoxOptions()
@@ -90,13 +90,18 @@ def start_browser(choice):
         options.add_argument(full_path)
         
         try:
-            service = FirefoxService(driver_path) # Menggunakan driver lokal
+            if os.path.exists(driver_path):
+                print("   🔧 Pakai driver LOKAL: geckodriver.exe")
+                service = FirefoxService(driver_path)
+            else:
+                print("   🌐 Driver LOKAL tidak ada. Auto-download Geckodriver (butuh internet)...")
+                service = FirefoxService(GeckoDriverManager().install())
             driver = webdriver.Firefox(service=service, options=options)
         except Exception as e:
             print(f"❌ Gagal buka Firefox: {e}")
             return None
         
-    # --- BRAVE ---
+    # --- BRAVE (FALLBACK AUTO-DOWNLOAD) ---
     elif selected['type'] == 'brave':
         driver_path = os.path.join(current_dir, "chromedriver.exe")
         options = ChromeOptions()
@@ -107,7 +112,12 @@ def start_browser(choice):
         options.add_argument("--log-level=3")
         
         try:
-            service = ChromeService(driver_path) # Menggunakan driver lokal
+            if os.path.exists(driver_path):
+                print("   🔧 Pakai driver LOKAL: chromedriver.exe")
+                service = ChromeService(driver_path)
+            else:
+                print("   🌐 Driver LOKAL tidak ada. Auto-download Chromedriver (butuh internet)...")
+                service = ChromeService(ChromeDriverManager().install())
             driver = webdriver.Chrome(service=service, options=options)
         except Exception as e:
             print(f"❌ Gagal buka Brave: {e}")
@@ -154,24 +164,26 @@ def run_tiktok(driver, search_target, new_name, new_code, raw_tgl_start, browser
         date_end_str = dt_end.strftime("%m/%d/%Y")
         time_start_str = "06:00 AM"
         time_end_str = "11:59 PM"
-        xpath_start_label = "Start time" # Harus pakai Bahasa Inggris
-        xpath_end_label = "End time" # Harus pakai Bahasa Inggris
+        xpath_start_label = "Start time" 
+        xpath_end_label = "End time" 
         
     else:
         # === INDONESIA GRUP (24H / DD/MM/YYYY) ===
         # Meliputi Edge 1, Edge 2, Firefox, Brave
-        print("🇮🇩 Mode: INDONESIA (24 Jam - DD/MM/YYYY)")
+        print("🇮🇩 Mode: INDONESIA (24 Jam)")
         date_start_str = dt_start.strftime("%d/%m/%Y") # DD/MM/YYYY
         date_end_str = dt_end.strftime("%d/%m/%Y")
         time_start_str = "06:00"
         time_end_str = "23:59"
         
-        # Label disesuaikan: Firefox (Indo), Edge/Brave (bisa Indo atau Inggris, kita pakai versi yang lebih general)
+        # Label disesuaikan
         if browser_choice == '3':
-            xpath_start_label = "Waktu mulai" # Firefox (Indo)
+            # Firefox (Indo)
+            xpath_start_label = "Waktu mulai" 
             xpath_end_label = "Waktu selesai"
         else:
-            xpath_start_label = "Start time" # Default untuk Edge/Brave (yang biasanya English di form)
+            # Edge 1, Edge 2, Brave (Biasanya English di form meskipun domain ID)
+            xpath_start_label = "Start time" 
             xpath_end_label = "End time"
 
 

@@ -43,8 +43,8 @@ profiles = {
     # Firefox: Harnisch (Si Anak Bawang)
     "3": {"type": "firefox", "path": base_path_firefox, "profile": "jtkkxnwv.default-release", "name": "Firefox - Harnisch"},
     
-    # Edge 4: Ciara Malaysia (Pake Profile 5 biar valid)
-    "4": {"type": "edge", "path": base_path_edge, "profile": "Profile 5", "name": "Edge 4 - Ciara Malaysia"},
+    # Edge 4: Ciara Malaysia (DIGANTI ke Profile 4, kalau masih salah ganti ke Profile 5)
+    "4": {"type": "edge", "path": base_path_edge, "profile": "Profile 4", "name": "Edge 4 - Ciara Malaysia"},
     
     # Brave: Heirbikids (Si Kuat)
     "5": {"type": "brave", "path": base_path_brave, "profile": "Default", "name": "Brave - Heirbikids"},
@@ -92,8 +92,10 @@ def start_browser(choice):
         try:
             # Cek driver lokal dulu, kalo ga ada baru download
             if os.path.exists(local_edge_driver):
+                # Pakai driver lokal jika ada
                 driver = webdriver.Edge(service=EdgeService(local_edge_driver), options=options)
             else:
+                # Fallback ke auto-download jika lokal tidak ada
                 driver = webdriver.Edge(service=EdgeService(EdgeChromiumDriverManager().install()), options=options)
         except Exception as e:
             print(f"❌ Yah gagal buka Edge: {e}")
