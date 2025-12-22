@@ -28,7 +28,7 @@ base_path_brave = r"C:\Users\danan\AppData\Local\BraveSoftware\Brave-Browser\Use
 base_path_firefox = r"C:\Users\danan\AppData\Roaming\Mozilla\Firefox\Profiles"
 
 profiles = {
-    "1": {"type": "edge", "path": base_path_edge, "profile": "Default",   "name": "Edge 1 - HERB25SEN"}, 
+    "1": {"type": "edge", "path": base_path_edge, "profile": "Default",   "name": "Edge 1 - Herbiglow"}, 
     "2": {"type": "edge", "path": base_path_edge, "profile": "Profile 1", "name": "Edge 2 - Ciara Indonesia"},
     "3": {"type": "firefox", "path": base_path_firefox, "profile": "jtkkxnwv.default-release", "name": "Firefox - Harnisch"},
     "5": {"type": "brave", "path": base_path_brave, "profile": "Default", "name": "Brave - Heirbikids"},
@@ -120,7 +120,7 @@ def isi_input(driver, xpath, value, keterangan):
         print(f"   ❌ Gagal {keterangan}: {e}")
 
 # ==========================================
-# 4. MAIN LOGIC - DATE & JAM PAKAI CARA TIKTOK BOT (BRUTAL & PASTI)
+# 4. MAIN LOGIC - DATE & JAM CARA TIKTOK BOT (BRUTAL & PASTI)
 # ==========================================
 def run_tokopedia(driver, nama_lama, nama_baru, jam_mulai="06:00"):
     url = "https://seller-id.tokopedia.com/promotion/marketing-tools/management?tab=1&shop_region=ID"
@@ -175,7 +175,7 @@ def run_tokopedia(driver, nama_lama, nama_baru, jam_mulai="06:00"):
         time.sleep(1)
 
         duplikasi_btn = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'arco-dropdown-menu-item') and contains(text(), 'Duplikasi')]"))
+            EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'arco-dropdown-menu-item') and contains(text(), 'Duplikat')]"))
         )
         driver.execute_script("arguments[0].click();", duplikasi_btn)
         print("✅ Duplikat berhasil!")
@@ -204,8 +204,8 @@ def run_tokopedia(driver, nama_lama, nama_baru, jam_mulai="06:00"):
     except Exception as e:
         print(f"   ❌ Gagal isi kode klaim: {e}")
 
-    # SCROLL KE TANGGAL & ISI PAKAI CARA TIKTOK BOT (BRUTAL)
-    print("   Scroll ke section Tanggal Promosi...")
+    # SCROLL PAS KE TANGGAL PROMOSI
+    print("   Scroll ke section Tanggal Promosi (pas, nggak kejauhan)...")
     driver.execute_script("window.scrollBy(0, 200);")
     time.sleep(2)
 
@@ -217,7 +217,7 @@ def run_tokopedia(driver, nama_lama, nama_baru, jam_mulai="06:00"):
     # ISI WAKTU MULAI - BRUTAL OVERWRITE
     try:
         tanggal_mulai = WebDriverWait(driver, 30).until(
-            EC.presence_of_element_located((By.XPATH, "//span[contains(text(), 'Waktu mulai')]/ancestor::div//input[1]"))
+            EC.element_to_be_clickable((By.XPATH, "//span[contains(text(), 'Waktu mulai')]/ancestor::div//input[1]"))
         )
         driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", tanggal_mulai)
         time.sleep(1)
@@ -227,13 +227,13 @@ def run_tokopedia(driver, nama_lama, nama_baru, jam_mulai="06:00"):
         tanggal_mulai.send_keys(tgl_mulai)
         print(f"   ✅ Tanggal Mulai: {tgl_mulai}")
 
-        jam_mulai = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, "//span[contains(text(), 'Waktu mulai')]/ancestor::div//input[2]"))
+        jam_mulai_field = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//span[contains(text(), 'Waktu mulai')]/ancestor::div//input[2]"))
         )
-        jam_mulai.click()
-        jam_mulai.send_keys(Keys.CONTROL + "a")
-        jam_mulai.send_keys(Keys.DELETE)
-        jam_mulai.send_keys(jam_mulai)
+        jam_mulai_field.click()
+        jam_mulai_field.send_keys(Keys.CONTROL + "a")
+        jam_mulai_field.send_keys(Keys.DELETE)
+        jam_mulai_field.send_keys(jam_mulai)
         print(f"   ✅ Jam Mulai: {jam_mulai}")
     except Exception as e:
         print(f"   ❌ Gagal isi Waktu Mulai: {e}")
@@ -241,7 +241,7 @@ def run_tokopedia(driver, nama_lama, nama_baru, jam_mulai="06:00"):
     # ISI WAKTU SELESAI - BRUTAL OVERWRITE
     try:
         tanggal_selesai = WebDriverWait(driver, 30).until(
-            EC.presence_of_element_located((By.XPATH, "//span[contains(text(), 'Waktu selesai')]/ancestor::div//input[1]"))
+            EC.element_to_be_clickable((By.XPATH, "//span[contains(text(), 'Waktu selesai')]/ancestor::div//input[1]"))
         )
         driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", tanggal_selesai)
         time.sleep(1)
@@ -251,13 +251,13 @@ def run_tokopedia(driver, nama_lama, nama_baru, jam_mulai="06:00"):
         tanggal_selesai.send_keys(tgl_selesai)
         print(f"   ✅ Tanggal Selesai: {tgl_selesai}")
 
-        jam_selesai = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, "//span[contains(text(), 'Waktu selesai')]/ancestor::div//input[2]"))
+        jam_selesai_field = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//span[contains(text(), 'Waktu selesai')]/ancestor::div//input[2]"))
         )
-        jam_selesai.click()
-        jam_selesai.send_keys(Keys.CONTROL + "a")
-        jam_selesai.send_keys(Keys.DELETE)
-        jam_selesai.send_keys("23:59")
+        jam_selesai_field.click()
+        jam_selesai_field.send_keys(Keys.CONTROL + "a")
+        jam_selesai_field.send_keys(Keys.DELETE)
+        jam_selesai_field.send_keys("23:59")
         print("   ✅ Jam Selesai: 23:59")
     except Exception as e:
         print(f"   ❌ Gagal isi Waktu Selesai: {e}")
@@ -273,7 +273,7 @@ def run_tokopedia(driver, nama_lama, nama_baru, jam_mulai="06:00"):
 # 5. MENU UTAMA
 # ==========================================
 if __name__ == "__main__":
-    print("\n=== 🤖 BOT TOKOPEDIA VOUCHER - DATE & JAM CARA TIKTOK BOT (PASTI JALAN) 🤖 ===\n")
+    print("\n=== 🤖 BOT TOKOPEDIA VOUCHER - VERSI FULL LENGKAP & FINAL 🤖 ===\n")
     
     print("Pilih akun:")
     for k, v in profiles.items():
