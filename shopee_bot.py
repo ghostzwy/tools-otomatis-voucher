@@ -77,9 +77,12 @@ def start_browser(choice):
 
         try:
             if os.path.exists(local_edge_driver):
+                print("Pakai local EdgeDriver (msedgedriver.exe)...")
                 driver = webdriver.Edge(service=EdgeService(local_edge_driver), options=options)
             else:
-                driver = webdriver.Edge(service=EdgeService(EdgeChromiumDriverManager().install()), options=options)
+                print("Download EdgeDriver otomatis...")
+                driver_path = EdgeChromiumDriverManager().install()
+                driver = webdriver.Edge(service=EdgeService(driver_path), options=options)
         except Exception as e:
             print(f"Gagal membuka Edge: {e}")
             return None
@@ -113,8 +116,7 @@ def start_browser(choice):
             if os.path.exists(driver_manual_path):
                 service = ChromeService(executable_path=driver_manual_path)
             else:
-                driver_downloaded = ChromeDriverManager(driver_version="143.0.7499.40").install()
-                service = ChromeService(driver_downloaded)
+                service = ChromeService(ChromeDriverManager().install())
             driver = webdriver.Chrome(service=service, options=options)
         except:
             return None
@@ -271,11 +273,11 @@ def robot_klik_kalender_shopee(driver, element_id, target_date_obj, target_time_
                 if cell.is_displayed() and "out-of-range" not in cell.get_attribute("class"):
                     valid_cell = cell
 
-            if valid_cell:
-                driver.execute_script("arguments[0].click();", valid_cell)
-                print(f"      Tanggal {tgt_d} berhasil dipilih.")
-            else:
-                print(f"      Gagal memilih tanggal {tgt_d}.")
+                if valid_cell:
+                    driver.execute_script("arguments[0].click();", valid_cell)
+                    print(f"      Tanggal {tgt_d} berhasil dipilih.")
+                else:
+                    print(f"      Gagal memilih tanggal {tgt_d}.")
         except:
             pass
 
